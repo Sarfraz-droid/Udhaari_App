@@ -1,46 +1,69 @@
 import 'package:udhaari/classes/expense/expense_item.dart';
+import 'package:udhaari/classes/expense/transactions/transactions_model.dart';
+import 'package:udhaari/services/expenses.dart';
+import 'package:uuid/uuid.dart';
 
 class ExpenseModel {
-  List<ExpenseItem> expenses;
-  List<ExpenseItem> settlement;
+  List<ExpenseItem> sender;
+  List<ExpenseItem> receiver;
+  List<TransactionModel>? transactions;
+  
   String message;
-  bool is_settled;
   List<String> users;
   int timestamp;
-  int total;
+  double amount;
+  String? iconId;
+  String? id;
+  final uuid = Uuid();
 
   ExpenseModel(
-      {required this.expenses,
-      required this.settlement,
-      required this.message,
-      required this.is_settled,
-      required this.users,
-      required this.timestamp,
-      required this.total});
+      {this.sender = const [],
+      this.receiver = const [],
+      this.message = '',
+      this.users = const [],
+      this.timestamp = 0,
+      this.amount = 0,
+      this.id,
+      this.iconId,
+      this.transactions}) {
+    id ??= uuid.v4();
+  }
 
   factory ExpenseModel.fromJSON(Map<String, dynamic> json) {
+    List<ExpenseItem> _expense = [];
+
+    if (json['sender'] != null) {
+      for (int i = 0; i < json['sender'].length; i++) {
+        print(json['sender'][i]);
+
+        _expense.add(
+            ExpenseItem.fromJSON(Map<String, dynamic>.from(json['sender'][i])));
+      }
+    }
+
     return ExpenseModel(
-      expenses: List<ExpenseItem>.from(
-          json['expenses'].map((x) => ExpenseItem.fromJSON(x))),
-      settlement: List<ExpenseItem>.from(
-          json['settlement'].map((x) => ExpenseItem.fromJSON(x))),
+      sender: _expense,
+      iconId: json['iconId'],
+      id: json['id'],
+      receiver: List<ExpenseItem>.from(json['receiver']
+          .map((x) => ExpenseItem.fromJSON(Map<String, dynamic>.from(x)))),
       message: json['message'] ?? "",
-      is_settled: json['is_settled'],
       users: List<String>.from(json['users']),
       timestamp: json['timestamp'],
-      total: json['total'],
+      amount: double.parse(json['total'].toString()),
     );
   }
 
   toJSON() {
     return {
-      "expenses": List<dynamic>.from(expenses.map((x) => x.toJSON())),
-      "settlement": List<dynamic>.from(settlement.map((x) => x.toJSON())),
+      "sender": List<dynamic>.from(sender.map((x) => x.toJSON())),
+      "receiver": List<dynamic>.from(receiver.map((x) => x.toJSON())),
       "message": message,
-      "is_settled": is_settled,
       "users": List<dynamic>.from(users.map((x) => x)),
       "timestamp": timestamp,
-      "total": total,
+      "total": amount,
+      "id": id,
+      "iconId": iconId,
     };
   }
 }

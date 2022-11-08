@@ -21,7 +21,7 @@ class AddFriend extends HookWidget {
     final _usersFound = useState<List<ProfileModel?>>([]);
 
     void _onSearchChange(String value) async {
-      List<ProfileModel?> users = await FirebaseUsers().findUsers(email: value);
+      List<ProfileModel?> users = await UsersService().findUsers(email: value);
       _usersFound.value = users;
       print(users);
     }
@@ -62,7 +62,7 @@ class AddFriend extends HookWidget {
                         TextButton(
                           onPressed: () async {
                             if (user.uid != null) {
-                              await FirebaseFriends().addFriend(user.uid!);
+                              await FriendsService().addFriend(user.uid!);
                               GoRouter.of(context).pop();
                               // Fluttertoast.showToast(
                               //     msg: "Friend Added Successfully");

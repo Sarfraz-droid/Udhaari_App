@@ -10,11 +10,16 @@ import 'package:udhaari/hooks/debouncer.dart';
 class NavAppBar extends HookWidget with PreferredSizeWidget {
   final String? title;
   final bool showBackButton;
-  final Function onSearchChange;
+  final bool showSearch;
+  final Function? onSearchChange;
+  final PreferredSizeWidget? bottomWidget;
+
   const NavAppBar(
       {super.key,
-      required this.onSearchChange,
+      this.onSearchChange,
       required this.title,
+      this.bottomWidget,
+      this.showSearch = true,
       this.showBackButton = false});
 
   @override
@@ -25,18 +30,19 @@ class NavAppBar extends HookWidget with PreferredSizeWidget {
 
     useEffect(() {
       _debouncer.run(() {
-        onSearchChange(search_text.value);
+        if (showSearch) onSearchChange!(search_text.value);
       });
     }, [search_text.value]);
 
     return AppBar(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(10),
-        ),
-      ),
-      leadingWidth: 20.0,
-      title: is_search.value
+      // shape: const RoundedRectangleBorder(
+      //   borderRadius: BorderRadius.vertical(
+      //     bottom: Radius.circular(10),
+      //   ),
+      // ),
+      // leadingWidth: 20.0,
+      bottom: bottomWidget,
+      title: showSearch && is_search.value
           ? TextField(
               style: const TextStyle(
                 color: Colors.white,
@@ -67,11 +73,12 @@ class NavAppBar extends HookWidget with PreferredSizeWidget {
         },
       ),
       actions: [
+        if (showSearch)
         AppBarActions(
           onSearch: () {
             is_search.value = !is_search.value;
           },
-          is_search: is_search.value,
+            is_search: showSearch && is_search.value,
         )
       ],
     );

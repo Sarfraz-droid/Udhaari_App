@@ -6,7 +6,9 @@
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "lint": "eslint .",
+    "prettier": "prettier --write \"**/*.{js,ts}\""
   },
   "engines": {
     "node": "16"
@@ -17,7 +19,20 @@
     "firebase-functions": "^3.18.0"
   },
   "devDependencies": {
-    "firebase-functions-test": "^0.2.0"
+    "babel-eslint": "^10.1.0",
+    "eslint": "^8.0.1",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-jsx-a11y": "^6.6.1",
+    "eslint-plugin-n": "^15.0.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-react": "^7.31.10",
+    "firebase-functions-test": "^0.2.0",
+    "prettier": "2.7.1"
   },
   "private": true
 }

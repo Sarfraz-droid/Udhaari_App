@@ -4,46 +4,56 @@ import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/material.dart';
-import 'package:udhaari/classes/chat.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:udhaari/classes/chat/chat.dart';
 import 'package:udhaari/components/Layout/nav_appbar.dart';
 import 'package:udhaari/components/chats/index.dart';
 import 'package:udhaari/components/navbar.dart';
 import 'package:udhaari/services/chats.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:udhaari/store/chats/cubit/chat_cubit.dart';
 import 'package:dartx/dartx.dart';
+import 'package:udhaari/store/chats/chat.dart';
+import 'package:udhaari/store/dashboard/dashboard.dart';
+import 'package:udhaari/store/settings/settings.dart';
 
-class ChatPage extends HookWidget {
+class ChatPage extends HookConsumerWidget {
   final String id;
   const ChatPage({super.key, required this.id});
 
   @override
-  Widget build(BuildContext context) {
-    final _chats = context.read<ChatCubit>();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final _chats = ref.watch(chatProvider.notifier);
+    final _dashboard = ref.watch(dashboardProvider.notifier);
+    final _settings = ref.watch(settingsProvider.notifier);
 
     Future<ChatModel> _onLoad() async {
-      // ChatModel res = await FirebaseChat(uid: id).getChatData();
-      ChatModel res = await _chats.loadChatData(id);
+      ChatModel res = ChatService(chatId: id).loadChatModel();
+      await res.validateGroupName();
+      await res.loadUsers();
+      print(res.groupName);
+
       _chats.updateCurrentChat(res);
+      await Hive.openBox('chats_${_chats.state.currentChat!.id}_messages');
+      await Hive.openBox('chats_${_chats.state.currentChat!.id}_expenses');
+
+      // await Hive.deleteBoxFromDisk(
+      //     'chats_${_chats.state.currentChat!.id}_transactions');
+      await Hive.openBox('chats_${_chats.state.currentChat!.id}_transactions');
+      await Hive.openBox('chats_${_chats.state.currentChat!.id}');
+
+      _settings.loadSettings();
+      _dashboard.loadDashboard();
+
+      
+
       return res;
     }
-
-    FirebaseFirestore.instance
-        .collection("chats")
-        .doc(id)
-        .snapshots()
-        .listen(((event) {
-      print("ChatPage: ${event.data()}");
-      _chats.updateCurrentChat(ChatModel.fromJSON(event.data()!));
-    }));
 
     return FutureBuilder(
       future: _onLoad(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return ChatComponent(
-            chat: snapshot.data,
-          );
+          return ChatComponent(chat: snapshot.data);
         }
         return Navbar(
           title: "Chat",

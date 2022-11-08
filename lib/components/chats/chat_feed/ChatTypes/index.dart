@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:udhaari/classes/chat.dart';
+import 'package:udhaari/classes/chat/chat.dart';
+import 'package:udhaari/classes/chat/chat_message.dart';
 
 import 'expense_type.dart';
 import 'message_type.dart';

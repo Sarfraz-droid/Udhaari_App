@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:udhaari/components/Layout/nav_appbar.dart';
 import 'package:udhaari/components/UI/Cards/user_card.dart';
 import 'package:udhaari/components/navbar.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class Friends extends HookWidget {
   const Friends({super.key});

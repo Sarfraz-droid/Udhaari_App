@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
-import 'package:udhaari/screens/add_expense.dart';
+import 'package:udhaari/screens/add_action_container.dart';
+import 'package:udhaari/screens/add_group.dart';
 import 'package:udhaari/screens/add_friend.dart';
 import 'package:udhaari/screens/chat.dart';
 import 'package:udhaari/screens/friends.dart';
@@ -20,11 +21,11 @@ final List<Routes> routes = [
   Routes(path: '/', page: (context, state) => Home()),
   Routes(
       path: '/auth/login',
-      page: (context, state) => const AuthPage(title: 'Login')),
+      page: (context, state) => AuthPage(title: 'Login')),
   Routes(
       path: '/auth/register',
       page: (context, state) =>
-          const AuthPage(title: 'Register', isLogin: false)),
+          AuthPage(title: 'Register', isLogin: false)),
   Routes(
     path: '/friends',
     page: (context, state) => const Friends(),
@@ -34,10 +35,16 @@ final List<Routes> routes = [
       page: (context, state) => ChatPage(
             id: state?.params['id']!,
           )),
+  Routes(
+    path: '/chat/:id/add',
+    page: (context, state) => AddActionContainer(
+      id: state?.params['id']!,
+    ),
+  ),
   Routes(path: '/add_friends', page: (context, state) => const AddFriend()),
   Routes(
     path: '/add_expense',
-    page: (context, state) => const AddExpense(),
+    page: (context, state) => const AddGroup(),
   ),
   Routes(path: '/profile', page: (context, state) => const Profile()),
 ];

@@ -1,6 +1,13 @@
 import 'dart:convert';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/rendering.dart';
-import 'package:udhaari/classes/chat.dart';
+
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
+import 'package:udhaari/classes/chat/chat.dart';
 import 'package:udhaari/classes/chat/chat_list.dart';
 import 'package:udhaari/classes/friends_list.dart';
 import 'package:udhaari/classes/user_friends.dart';
@@ -11,10 +18,12 @@ import 'package:udhaari/classes/profile.dart';
 import 'package:udhaari/classes/user.dart';
 import 'package:udhaari/screens/profile.dart';
 
-class FirebaseUsers {
+class UsersService {
   final uuid = Uuid();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final users = Hive.box('users');
+  final chats = Hive.box('chats');
 
   Future<UserCredential> login(String email, String password) async {
     try {
@@ -109,69 +118,100 @@ class FirebaseUsers {
   Future<ProfileModel> getProfileByID(String uid) async {
     DocumentSnapshot documentSnapshot =
         await _firestore.collection('profile').doc(uid).get();
+    if (documentSnapshot.data() == null) {
+      return ProfileModel();
+    }
     return ProfileModel()
         .fromJSON(documentSnapshot.data() as Map<String, dynamic>);
   }
 
-  Future<List<ChatList>> getChatList() async {
-    List<ChatList> chatList = [];
-    User? user = await getCurrentUser();
-    QuerySnapshot documentSnapshot = await _firestore
-        .collection('chats')
-        .where(
-          'members',
-          arrayContains: user?.uid,
-        )
-        .get();
+  // Future<List<ChatList>> getChatList() async {
+  //   List<ChatList> chatList = [];
+  //   User? user = await getCurrentUser();
+  //   QuerySnapshot documentSnapshot = await _firestore
+  //       .collection('chats')
+  //       .where(
+  //         'members',
+  //         arrayContains: user?.uid,
+  //       )
+  //       .get();
 
-    print("Chat list length ${documentSnapshot.docs.length}");
-    // documentSnapshot.docs.forEach((doc) async {
-    //   ChatList cl = ChatList();
-    //   ChatModel chat = ChatModel.fromJSON(doc.data() as Map<String, dynamic>);
+  //   print("Chat list length ${documentSnapshot.docs.length}");
+  //   // documentSnapshot.docs.forEach((doc) async {
+  //   //   ChatList cl = ChatList();
+  //   //   ChatModel chat = ChatModel.fromJSON(doc.data() as Map<String, dynamic>);
 
-    //   cl.chat = chat;
-    //   QuerySnapshot lastMessageSnapshot = await _firestore
-    //       .collection('chats')
-    //       .doc(chat.id)
-    //       .collection('messages')
-    //       .orderBy('created_at', descending: true)
-    //       .limit(1)
-    //       .get();
+  //   //   cl.chat = chat;
+  //   //   QuerySnapshot lastMessageSnapshot = await _firestore
+  //   //       .collection('chats')
+  //   //       .doc(chat.id)
+  //   //       .collection('messages')
+  //   //       .orderBy('created_at', descending: true)
+  //   //       .limit(1)
+  //   //       .get();
 
-    //   if (lastMessageSnapshot.docs.length > 0) {
-    //     cl.lastMessage = ChatMessage.fromJSON(
-    //         lastMessageSnapshot.docs[0].data() as Map<String, dynamic>);
-    //   }
+  //   //   if (lastMessageSnapshot.docs.length > 0) {
+  //   //     cl.lastMessage = ChatMessage.fromJSON(
+  //   //         lastMessageSnapshot.docs[0].data() as Map<String, dynamic>);
+  //   //   }
 
-    //   chatList.add(cl);
-    // });
+  //   //   chatList.add(cl);
+  //   // });
 
-    for (int i = 0; i < documentSnapshot.docs.length; i++) {
+  //   for (int i = 0; i < documentSnapshot.docs.length; i++) {
+  //     ChatList cl = ChatList();
+  //     ChatModel chat = ChatModel.fromJSON(
+  //         documentSnapshot.docs[i].data() as Map<String, dynamic>);
+  //     cl.chat = chat;
+  //     QuerySnapshot lastMessageSnapshot = await _firestore
+  //         .collection('chats')
+  //         .doc(chat.id)
+  //         .collection('messages')
+  //         .orderBy('timestamp', descending: true)
+  //         .limit(1)
+  //         .get();
+
+  //     await cl.chat?.validateGroupName();
+
+  //     print(lastMessageSnapshot.docs.length);
+
+  //     if (lastMessageSnapshot.docs.isNotEmpty) {
+  //       cl.lastMessage = ChatMessage.fromJSON(
+  //           lastMessageSnapshot.docs[0].data() as Map<String, dynamic>);
+  //     }
+  //     await cl.lastMessage?.loadExpense();
+  //     chatList.add(cl);
+  //   }
+
+  //   print("Chat_list length ${chatList.length}");
+  //   return chatList;
+  // }
+
+  Future<List<ChatList>?> getChatList() async {
+    // await chats.deleteAll(chats.keys);
+    List<ChatList>? chatList = [];
+    print('Getting chat list : getChatList()');
+    chats.values.forEach((element) {
+      ChatModel ch = ChatModel.fromJSON(Map<String, dynamic>.from(element));
+      ch.validateGroupName();
+
       ChatList cl = ChatList();
-      ChatModel chat = ChatModel.fromJSON(
-          documentSnapshot.docs[i].data() as Map<String, dynamic>);
-      cl.chat = chat;
-      QuerySnapshot lastMessageSnapshot = await _firestore
-          .collection('chats')
-          .doc(chat.id)
-          .collection('messages')
-          .orderBy('timestamp', descending: true)
-          .limit(1)
-          .get();
+      cl.chat = ch;
 
-      await cl.chat?.validateGroupName();
-
-      print(lastMessageSnapshot.docs.length);
-
-      if (lastMessageSnapshot.docs.isNotEmpty) {
-        cl.lastMessage = ChatMessage.fromJSON(
-            lastMessageSnapshot.docs[0].data() as Map<String, dynamic>);
-      }
-      await cl.lastMessage?.loadExpense();
       chatList.add(cl);
-    }
+    });
 
-    print("Chat_list length ${chatList.length}");
     return chatList;
+  }
+
+  Future<void> updateToken(String token) async {
+    if (FirebaseAuth.instance.currentUser != null) {
+
+      FirebaseFunctions.instance.httpsCallable('updateToken').call({
+        'token': token,
+        'uid': FirebaseAuth.instance.currentUser!.uid,
+      });
+      print('Token updated');
+    }
   }
 }

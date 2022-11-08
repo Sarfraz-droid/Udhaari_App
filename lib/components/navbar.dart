@@ -56,6 +56,7 @@ class Navbar extends HookWidget {
 
     return Scaffold(
         appBar: appBar,
+        resizeToAvoidBottomInset: false,
         bottomNavigationBar: Visibility(
             visible: showBottomNav,
             child: bottomNavBar(onItemTapped, currentRoute)),

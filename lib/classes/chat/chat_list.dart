@@ -1,4 +1,5 @@
-import 'package:udhaari/classes/chat.dart';
+import 'package:udhaari/classes/chat/chat.dart';
+import 'package:udhaari/classes/chat/chat_message.dart';
 
 class ChatList {
 
@@ -12,8 +13,10 @@ class ChatList {
 
   factory ChatList.fromJSON(Map<String, dynamic> json) {
     return ChatList(
-      chat: ChatModel.fromJSON(json['chat']),
-      lastMessage: ChatMessage.fromJSON(json['lastMessage']),
+      chat: ChatModel.fromJSON(json),
+      lastMessage: json['chat'] != null
+          ? ChatMessage.fromJSON(json['lastMessage'])
+          : null,
     );
   }
 

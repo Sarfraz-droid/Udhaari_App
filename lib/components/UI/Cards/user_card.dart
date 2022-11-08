@@ -42,7 +42,9 @@ class UserCard extends StatelessWidget {
                     ? Image(
                         image: NetworkImage(imageUrl!),
                       )
-                    : Icon(icon!),
+                    : icon != null
+                        ? Icon(icon!)
+                        : Text(name.substring(0, 2)),
               ),
             ),
             const SizedBox(width: 10),
